@@ -1,0 +1,21 @@
+[project]
+name = "projeto"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Francisco2310",email = "74802078+Francisco2310@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mypy (>=1.20.0,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+
