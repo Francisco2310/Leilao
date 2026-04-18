@@ -24,12 +24,12 @@ def test_auction_initial_state():
     clock = MockClock(datetime.now())
     auction = Auction(id_generator, "seller-id")
     assert auction.status == AuctionStatus.DRAFT
-    assert auction.sellerID == "seller-id"
+    assert auction.seller_id == "seller-id"
     assert auction.bids == []
     assert auction.minimum_bid is None
     assert auction.minimum_percentage is None
-    assert auction.productID is None
-    assert auction.winnerID is None
+    assert auction.product_id is None
+    assert auction.winner_id is None
     assert auction.started_at is None
     assert auction.closed_at is None
     assert auction.expires_at is None
@@ -43,7 +43,7 @@ def test_auction_start_valid_configuration():
     assert auction.status == AuctionStatus.ACTIVE
     assert auction.minimum_bid == Money(100, Currency.BRL)
     assert auction.minimum_percentage == Decimal('0.1')
-    assert auction.productID == "product-id"
+    assert auction.product_id == "product-id"
     assert auction.expires_at == now + timedelta(days=1)
     assert auction.started_at == now
 
@@ -170,7 +170,7 @@ def test_close_valid_configuration():
     auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
     auction.close(clock)
     assert auction.status == AuctionStatus.CLOSED
-    assert auction.winnerID == "user-id"
+    assert auction.winner_id == "user-id"
     assert auction.closed_at == now
 
 
@@ -182,7 +182,7 @@ def test_close_auction_active_no_bids():
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
     auction.close(clock)
     assert auction.status == AuctionStatus.CANCELLED
-    assert auction.winnerID is None
+    assert auction.winner_id is None
     assert auction.closed_at is None
 
 def test_close_auction_active_with_bids_below_minimum():
@@ -194,7 +194,7 @@ def test_close_auction_active_with_bids_below_minimum():
     auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
     auction.close(clock)
     assert auction.status == AuctionStatus.CANCELLED
-    assert auction.winnerID is None
+    assert auction.winner_id is None
     assert auction.closed_at is None
 
 
@@ -238,3 +238,15 @@ def test_cancel_auction_draft():
     auction.cancel()
     assert auction.status == AuctionStatus.CANCELLED
 
+def test_bid_snipe():
+    id_generator = MockIdGenerator()
+    clock = MockClock(datetime.now())
+    expiration = clock.now() + timedelta(hours=2)
+    
+    auction = Auction(id_generator, "seller-id")
+    auction.start(clock, Money(100, Currency.BRL), "product-id", expiration, Decimal('0.1'))
+
+    clock.current_time = expiration - timedelta(seconds=15)
+    auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
+    
+    assert auction.expires_at == expiration + timedelta(minutes=2)
