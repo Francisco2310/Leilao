@@ -7,7 +7,7 @@ from domain.Entities.auction import Auction, AuctionStatus
 from domain.ValueObjects.money import Money
 from domain.Ports.ports import IdGenerator
 from decimal import Decimal
-from application.exceptions.application_exceptions import AuctionNotFoundError
+from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
 
 class MockClock(Clock):
     def __init__(self, current_time: datetime):
@@ -33,14 +33,18 @@ class TestStartAuctionUseCase:
         self.use_case = StartAuctionUseCase(self.repository, self.clock)
 
     def test_start_auction_success(self):
-        self.use_case.execute(auction_id="1", minimum_bid=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
+        self.use_case.execute(auction_id="1", seller_id="seller-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
         auction = self.repository.find_by_id("1")
         assert auction.status == AuctionStatus.ACTIVE
-        assert auction.minimum_bid == Money(Decimal("100.0"), "BRL")
+        assert auction.reserve_price == Money(Decimal("100.0"), "BRL")
         assert auction.product_id == "1"
         assert auction.expires_at == self.clock.now() + timedelta(days=1)
         assert auction.minimum_percentage == Decimal("0.10")
 
     def test_start_auction_not_found(self):
         with pytest.raises(AuctionNotFoundError):
-            self.use_case.execute(auction_id="2", minimum_bid=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
+            self.use_case.execute(auction_id="2", seller_id="seller-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
+
+    def test_start_auction_unauthorized(self):
+        with pytest.raises(UnauthorizedActionError):
+            self.use_case.execute(auction_id="1", seller_id="invasor-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)

@@ -33,3 +33,7 @@ class InvalidAuctionConfigurationError(DomainException):
 class SelfBidError(DomainException):
     """Raised when a seller attempts to place a bid on their own auction."""
     pass
+
+class AuctionNotExpiredError(DomainException):
+    """Raised when attempting to close an auction that has not expired yet."""
+    pass

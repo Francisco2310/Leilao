@@ -3,3 +3,6 @@ class ApplicationException(Exception):
 
 class AuctionNotFoundError(ApplicationException):
     pass
+
+class UnauthorizedActionError(ApplicationException):
+    pass

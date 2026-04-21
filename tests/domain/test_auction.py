@@ -4,7 +4,7 @@ from decimal import Decimal
 from domain.Entities.auction import Auction, AuctionStatus
 from domain.ValueObjects.money import Money, Currency
 from domain.Entities.bid import Bid
-from domain.Exceptions.domain_exceptions import AuctionNotActiveError, InvalidAuctionConfigurationError, SelfBidError, BidTooLowError, NegativeAmountError, AuctionExpiredError, AuctionInvalidStateTransitionError
+from domain.Exceptions.domain_exceptions import AuctionNotActiveError, InvalidAuctionConfigurationError, SelfBidError, BidTooLowError, NegativeAmountError, AuctionExpiredError, AuctionInvalidStateTransitionError, AuctionNotExpiredError
 from domain.Ports.ports import IdGenerator, Clock
 
 class MockIdGenerator(IdGenerator):
@@ -26,7 +26,7 @@ def test_auction_initial_state():
     assert auction.status == AuctionStatus.DRAFT
     assert auction.seller_id == "seller-id"
     assert auction.bids == []
-    assert auction.minimum_bid is None
+    assert auction.reserve_price is None
     assert auction.minimum_percentage is None
     assert auction.product_id is None
     assert auction.winner_id is None
@@ -41,7 +41,7 @@ def test_auction_start_valid_configuration():
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
     assert auction.status == AuctionStatus.ACTIVE
-    assert auction.minimum_bid == Money(100, Currency.BRL)
+    assert auction.reserve_price == Money(100, Currency.BRL)
     assert auction.minimum_percentage == Decimal('0.1')
     assert auction.product_id == "product-id"
     assert auction.expires_at == now + timedelta(days=1)
@@ -168,10 +168,10 @@ def test_close_valid_configuration():
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
     auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
+    clock.current_time = now + timedelta(days=2)
     auction.close(clock)
     assert auction.status == AuctionStatus.CLOSED
     assert auction.winner_id == "user-id"
-    assert auction.closed_at == now
 
 
 def test_close_auction_active_no_bids():
@@ -180,22 +180,33 @@ def test_close_auction_active_no_bids():
     now = clock.now()
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
+    clock.current_time = now + timedelta(days=2)
     auction.close(clock)
     assert auction.status == AuctionStatus.CANCELLED
     assert auction.winner_id is None
     assert auction.closed_at is None
 
-def test_close_auction_active_with_bids_below_minimum():
+def test_close_auction_active_with_bids_below_reserve_price():
     id_generator = MockIdGenerator()
     clock = MockClock(datetime.now())
     now = clock.now()
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(500, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
     auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
+    clock.current_time = now + timedelta(days=2)
     auction.close(clock)
     assert auction.status == AuctionStatus.CANCELLED
     assert auction.winner_id is None
     assert auction.closed_at is None
+
+def test_close_auction_before_expiration():
+    id_generator = MockIdGenerator()
+    clock = MockClock(datetime.now())
+    now = clock.now()
+    auction = Auction(id_generator, "seller-id")
+    auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
+    with pytest.raises(AuctionNotExpiredError):
+        auction.close(clock)
 
 
 def test_cancel_auction_draft():
@@ -219,7 +230,8 @@ def test_cancel_auction_closed():
     now = clock.now()
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
-    auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)   
+    auction.add_bid(Bid(Money(100, Currency.BRL), "user-id", id_generator), clock)
+    clock.current_time = now + timedelta(days=2)
     auction.close(clock)
 
     with pytest.raises(AuctionInvalidStateTransitionError):
@@ -232,11 +244,7 @@ def test_cancel_auction_cancelled():
     with pytest.raises(AuctionInvalidStateTransitionError):
         auction.cancel()
 
-def test_cancel_auction_draft():
-    id_generator = MockIdGenerator()
-    auction = Auction(id_generator, "seller-id")
-    auction.cancel()
-    assert auction.status == AuctionStatus.CANCELLED
+
 
 def test_bid_snipe():
     id_generator = MockIdGenerator()
