@@ -20,3 +20,5 @@ Thumbs.db
 .vscode/
 .idea/
 Auditoria/
+CONTEXTO_HANDOVER.md
+.env

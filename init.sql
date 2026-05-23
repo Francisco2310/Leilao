@@ -1,0 +1,1 @@
+CREATE DATABASE auctions_test;
