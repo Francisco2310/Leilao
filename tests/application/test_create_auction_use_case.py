@@ -18,7 +18,7 @@ class TestCreateAuctionUseCase:
 
     def test_create_auction_success(self):
         self.use_case.execute(seller_id="seller-id")
-        auction = self.repository.find_by_id("1")
+        auction = self.repository.find_by_id_for_update("1")
         assert auction.id == "1"
         assert auction.seller_id == "seller-id"
         assert auction.status == AuctionStatus.DRAFT

@@ -34,12 +34,12 @@ class TestAddBidUseCase:
         self.use_case = AddBidUseCase(self.repository, self.id_generator, self.clock)
 
     def test_add_bid_success(self):
-        self.use_case.execute("1", "user-id", 100.0, "BRL")
-        auction = self.repository.find_by_id("1")
+        self.use_case.execute("1", "user-id", Decimal("100.0"), "BRL")
+        auction = self.repository.find_by_id_for_update("1")
         assert auction.bids[0].value == Money(Decimal("100.0"), "BRL")
         assert auction.bids[0].user_id == "user-id"
         assert auction.bids[0].id == "1"
 
     def test_add_bid_not_found(self):
         with pytest.raises(AuctionNotFoundError):
-            self.use_case.execute("2", "user-id", 100.0, "BRL")
+            self.use_case.execute("2", "user-id", Decimal("100.0"), "BRL")

@@ -33,8 +33,8 @@ class TestStartAuctionUseCase:
         self.use_case = StartAuctionUseCase(self.repository, self.clock)
 
     def test_start_auction_success(self):
-        self.use_case.execute(auction_id="1", seller_id="seller-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
-        auction = self.repository.find_by_id("1")
+        self.use_case.execute(auction_id="1", seller_id="seller-id", reserve_price=Decimal("100.0"), currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=Decimal("0.10"))
+        auction = self.repository.find_by_id_for_update("1")
         assert auction.status == AuctionStatus.ACTIVE
         assert auction.reserve_price == Money(Decimal("100.0"), "BRL")
         assert auction.product_id == "1"
@@ -43,8 +43,8 @@ class TestStartAuctionUseCase:
 
     def test_start_auction_not_found(self):
         with pytest.raises(AuctionNotFoundError):
-            self.use_case.execute(auction_id="2", seller_id="seller-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
+            self.use_case.execute(auction_id="2", seller_id="seller-id", reserve_price=Decimal("100.0"), currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=Decimal("0.10"))
 
     def test_start_auction_unauthorized(self):
         with pytest.raises(UnauthorizedActionError):
-            self.use_case.execute(auction_id="1", seller_id="invasor-id", reserve_price=100.0, currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=0.10)
+            self.use_case.execute(auction_id="1", seller_id="invasor-id", reserve_price=Decimal("100.0"), currency="BRL", product_id="1", expires_at=self.clock.now() + timedelta(days=1), minimum_percentage=Decimal("0.10"))

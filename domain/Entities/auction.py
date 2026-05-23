@@ -53,6 +53,9 @@ class Auction:
     if self.status != AuctionStatus.ACTIVE:
       raise AuctionNotActiveError("Auction must be active to add bids")
 
+    assert self.expires_at is not None
+    assert self.minimum_percentage is not None
+
     if self.expires_at <= now:
       raise AuctionExpiredError("Auction has expired")
       
@@ -62,12 +65,13 @@ class Auction:
       raise SelfBidError("Seller cannot bid on their own auction")
 
     if self.bids:
-      minimo_para_bater = self.highest_bid.value.amount * (Decimal('1') + self.minimum_percentage)
-      if bid.value.amount < minimo_para_bater:
+      assert self.highest_bid is not None
+      min_outbid_amount = self.highest_bid.value.amount * (Decimal('1') + self.minimum_percentage)
+      if bid.value.amount < min_outbid_amount:
         raise BidTooLowError("Bid value must be greater than current highest bid plus minimum percentage")
     else:
-      minimo_de_entrada = Decimal(str(self.MINIMUM_BID_VALUE)) * (Decimal('1') + self.minimum_percentage)
-      if bid.value.amount < minimo_de_entrada:
+      min_starting_amount = Decimal(str(self.MINIMUM_BID_VALUE)) * (Decimal('1') + self.minimum_percentage)
+      if bid.value.amount < min_starting_amount:
         raise BidTooLowError("Bid value must be greater than or equal to the minimum starting bid")
 
     self.bids.append(bid)
@@ -83,12 +87,17 @@ class Auction:
   def close(self, clock: Clock):
     if self.status != AuctionStatus.ACTIVE:
       raise AuctionInvalidStateTransitionError("Auction must be active to be closed")
+
+    assert self.expires_at is not None
+    assert self.reserve_price is not None
+
     if self.expires_at > clock.now():
       raise AuctionNotExpiredError("Auction has not expired yet")
     if not self.bids:
       self.cancel()
       return
     
+    assert self.highest_bid is not None
     if self.highest_bid.value < self.reserve_price:
       self.cancel()
       return
@@ -123,3 +132,21 @@ class Auction:
     self.product_id = product_id
     self.started_at = clock.now()
     self.expires_at = expires_at
+
+  @classmethod
+  def restore(cls, id: str, seller_id: str, status: AuctionStatus, reserve_price: Money | None, minimum_percentage: Decimal | None, product_id: str | None, winner_id: str | None, started_at: datetime | None, closed_at: datetime | None, expires_at: datetime | None, bids: list[Bid] = []):
+
+    auction = cls.__new__(cls)
+    auction.id = id
+    auction.seller_id = seller_id
+    auction.status = status
+    auction.reserve_price = reserve_price
+    auction.minimum_percentage = minimum_percentage
+    auction.product_id = product_id
+    auction.winner_id = winner_id
+    auction.started_at = started_at
+    auction.closed_at = closed_at
+    auction.expires_at = expires_at
+    auction.bids = bids
+    
+    return auction

@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 @dataclass
 class AuctionResponseDto:
     id: str
     seller_id: str
     product_id: str
-    current_price: float | None
+    current_price: Decimal | None
     status: str
     expires_at: str | None
 
@@ -15,7 +16,7 @@ class AuctionResponseDto:
             id=auction.id,
             seller_id=auction.seller_id,
             product_id=auction.product_id,
-            current_price=float(auction.highest_bid.value.amount if auction.highest_bid else auction.reserve_price.amount if auction.reserve_price else 0.0),
+            current_price=auction.highest_bid.value.amount if auction.highest_bid else auction.reserve_price.amount if auction.reserve_price else Decimal('0.0'),
             status=auction.status.value,
             expires_at=auction.expires_at.isoformat() if auction.expires_at else None
         )

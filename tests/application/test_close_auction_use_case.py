@@ -37,8 +37,8 @@ class TestCloseAuctionUseCase:
         
         self.use_case.execute(auction.id)
         
-        auction_salvo = self.repository.find_by_id(auction.id)
-        assert auction_salvo.status == AuctionStatus.CANCELLED
+        saved_auction = self.repository.find_by_id_for_update(auction.id)
+        assert saved_auction.status == AuctionStatus.CANCELLED
         
     def test_close_auction_not_found(self):
         with pytest.raises(AuctionNotFoundError):

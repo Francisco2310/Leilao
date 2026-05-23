@@ -10,6 +10,10 @@ class CurrencyMismatchError(DomainException):
     """Raised when operations are attempted between different currencies."""
     pass
 
+class InvalidCurrencyError(DomainException):
+    """Raised when an invalid currency string is provided."""
+    pass
+
 class BidTooLowError(DomainException):
     """Raised when a bid value is not strictly positive."""
     pass

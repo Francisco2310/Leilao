@@ -7,9 +7,9 @@ class AuctionRepositoryInterface(ABC):
         pass
     
     @abstractmethod
-    def find_by_id(self, auction_id: str) -> Auction | None:
+    def find_by_id_for_update(self, auction_id: str) -> Auction | None:
         pass
 
     @abstractmethod
-    def find_all(self, start_page: int, total_per_page: int, seller_id: str = None, status: str = None) -> list[Auction]:
+    def find_all(self, limit: int, cursor: str | None = None, seller_id: str | None = None, status: str | None = None) -> list[Auction]:
         pass

@@ -19,3 +19,12 @@ class Bid:
       return NotImplemented
     return self.id == other.id
 
+  @classmethod
+  def restore(cls, id: str, user_id: str, value: Money) -> 'Bid':
+    bid = cls.__new__(cls)
+    bid.id = id
+    bid.user_id = user_id
+    bid.value = value
+    return bid
+
+
