@@ -8,16 +8,17 @@ class InMemoryAuctionRepository(AuctionRepositoryInterface):
     def save(self, auction: Auction):
         self._db[auction.id] = auction
 
-    def find_by_id(self, auction_id: str):
+    def find_by_id_for_update(self, auction_id: str):
         return self._db.get(auction_id)
 
-    def find_all(self, start_page: int, total_per_page: int, seller_id: str = None, status: str = None):
-        auctions = list(self._db.values())
+    def find_all(self, limit: int, cursor: str | None = None, seller_id: str | None = None, status: str | None = None):
+        auctions = sorted(self._db.values(), key=lambda a: a.id, reverse=True)
         
+        if cursor:
+            auctions = [a for a in auctions if a.id < cursor]
         if seller_id:
             auctions = [a for a in auctions if a.seller_id == seller_id]
         if status:
             auctions = [a for a in auctions if a.status.value == status or a.status == status]
             
-        start = (start_page - 1) * total_per_page
-        return auctions[start:start + total_per_page]
+        return auctions[:limit]
