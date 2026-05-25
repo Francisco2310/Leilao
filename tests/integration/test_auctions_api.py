@@ -44,6 +44,13 @@ def test_start_auction_success(client, db_session):
     assert auction.reserve_price_currency == "BRL"
     assert auction.minimum_percentage == Decimal('0.10')
 
+    from infrastructure.models.outbox_event_model import OutboxEventModel
+    event = db_session.query(OutboxEventModel).filter_by(event_type="AuctionStartedEvent").first()
+    assert event is not None
+    assert event.payload["auction_id"] == auction_id
+    assert event.payload["seller_id"] == seller_id
+    assert event.processed is False
+
 def test_start_auction_unauthorized(client, db_session):
     seller_id = str(uuid7())
     other_id = str(uuid7())
@@ -101,6 +108,13 @@ def test_add_bid_success(client, db_session):
     assert bid.user_id == bidder_id
     assert bid.amount == 50.0
 
+    from infrastructure.models.outbox_event_model import OutboxEventModel
+    event = db_session.query(OutboxEventModel).filter_by(event_type="BidPlacedEvent").first()
+    assert event is not None
+    assert event.payload["auction_id"] == auction_id
+    assert event.payload["user_id"] == bidder_id
+    assert float(event.payload["amount"]) == 50.0
+
 def test_add_bid_self_bidding_fails(client, db_session):
     seller_id = str(uuid7())
     create_resp = client.post("/auctions", json={"seller_id": seller_id})
@@ -143,6 +157,11 @@ def test_cancel_auction_success(client, db_session):
     
     auction = db_session.query(AuctionModel).filter_by(id=auction_id).first()
     assert auction.status == "cancelled"
+
+    from infrastructure.models.outbox_event_model import OutboxEventModel
+    event = db_session.query(OutboxEventModel).filter_by(event_type="AuctionCancelledEvent").first()
+    assert event is not None
+    assert event.payload["auction_id"] == auction_id
 
 def test_cancel_auction_unauthorized(client, db_session):
     seller_id = str(uuid7())
@@ -191,3 +210,4 @@ def test_list_auctions_filtering(client, db_session):
     auctions = response.json()
     assert len(auctions) == 1
     assert auctions[0]["seller_id"] == seller1
+

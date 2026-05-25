@@ -3,6 +3,7 @@ from domain.Entities.auction import Auction
 from domain.ValueObjects.money import Currency
 from infrastructure.models.auction_model import AuctionModel
 from infrastructure.models.bid_model import BidModel
+from infrastructure.models.outbox_event_model import OutboxEventModel
 from sqlalchemy.orm import Session
 
 class AuctionRepository(AuctionRepositoryInterface):
@@ -15,7 +16,8 @@ class AuctionRepository(AuctionRepositoryInterface):
             seller_id=auction.seller_id,
             status=auction.status.value,
             reserve_price_amount=auction.reserve_price.amount if auction.reserve_price else None,
-            reserve_price_currency=auction.reserve_price.currency if auction.reserve_price else None,
+            reserve_price_currency=auction.reserve_price.currency.value if auction.reserve_price else None,
+
             minimum_percentage=auction.minimum_percentage,
             product_id=auction.product_id,
             winner_id=auction.winner_id,
@@ -29,11 +31,21 @@ class AuctionRepository(AuctionRepositoryInterface):
                 id=bid.id,
                 user_id=bid.user_id,
                 amount=bid.value.amount,
-                currency=bid.value.currency.value if bid.value.currency else None
+                currency=bid.value.currency.value if bid.value.currency else None,
+                placed_at=bid.placed_at
             ) for bid in auction.bids
         ]
         
+        events = [
+            OutboxEventModel(
+                event_type=event.__class__.__name__,
+                payload=event.to_dict()
+            ) for event in auction.events
+        ]
+        
         self.session.merge(auction_model)
+        self.session.add_all(events)
+        auction.clear_events()
     
     def find_by_id_for_update(self, auction_id: str) -> Auction | None:
         
@@ -58,7 +70,8 @@ class AuctionRepository(AuctionRepositoryInterface):
             bid = Bid.restore(
                 id=bid_model.id,
                 user_id=bid_model.user_id,
-                value=Money(amount=bid_model.amount, currency=Currency(bid_model.currency))
+                value=Money(amount=bid_model.amount, currency=Currency(bid_model.currency)),
+                placed_at=bid_model.placed_at
             )
             domain_bids.append(bid)
 
@@ -111,7 +124,8 @@ class AuctionRepository(AuctionRepositoryInterface):
             bid = Bid.restore(
               id=bid_model.id,
               user_id=bid_model.user_id,
-              value=Money(amount=bid_model.amount, currency=Currency(bid_model.currency))
+              value=Money(amount=bid_model.amount, currency=Currency(bid_model.currency)),
+              placed_at=bid_model.placed_at
             )
             domain_bids.append(bid)
             

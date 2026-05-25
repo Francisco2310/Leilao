@@ -1,9 +1,17 @@
+from datetime import datetime
 import pytest
 from application.use_cases.cancel_auction_use_case import CancelAuctionUseCase
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
 from domain.Exceptions.domain_exceptions import AuctionInvalidStateTransitionError
 from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
 from domain.Entities.auction import Auction, AuctionStatus
+from domain.Ports.ports import Clock
+
+class MockClock(Clock):
+    def __init__(self, current_time: datetime):
+        self.current_time = current_time
+    def now(self) -> datetime:
+        return self.current_time
 
 class MockIdGenerator:
     def generate(self) -> str:
@@ -12,7 +20,8 @@ class MockIdGenerator:
 class TestCancelAuctionUseCase:
     def setup_method(self):
         self.repository = InMemoryAuctionRepository()
-        self.use_case = CancelAuctionUseCase(self.repository)
+        self.clock = MockClock(datetime.now())
+        self.use_case = CancelAuctionUseCase(self.repository, self.clock)
         self.id_generator = MockIdGenerator()
         
     def test_cancel_auction_success(self):

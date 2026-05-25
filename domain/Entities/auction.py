@@ -5,6 +5,8 @@ from domain.ValueObjects.money import Money
 from domain.Exceptions.domain_exceptions import AuctionNotActiveError, AuctionInvalidStateTransitionError, BidTooLowError, SelfBidError, AuctionExpiredError, InvalidAuctionConfigurationError, AuctionNotExpiredError
 from datetime import datetime, timedelta
 from decimal import Decimal
+from domain.Events.domain_event import DomainEvent, AuctionStartedEvent, BidPlacedEvent, AuctionClosedEvent, AuctionCancelledEvent
+
 
 class AuctionStatus(Enum):
   CANCELLED = "cancelled"
@@ -24,6 +26,8 @@ class Auction:
   started_at: datetime | None
   closed_at: datetime | None
   expires_at: datetime | None
+  events: list[DomainEvent]
+  
   MINIMUM_DURATION = timedelta(hours=1)
   MINIMUM_BID_VALUE = 1
 
@@ -39,7 +43,10 @@ class Auction:
     self.started_at = None
     self.closed_at = None
     self.expires_at = None
+    self.events = []
 
+  def clear_events(self):
+    self.events = []
 
   @property
   def highest_bid(self) -> Bid | None:
@@ -74,15 +81,34 @@ class Auction:
       if bid.value.amount < min_starting_amount:
         raise BidTooLowError("Bid value must be greater than or equal to the minimum starting bid")
 
+    bid.placed_at = now
     self.bids.append(bid)
+    self.events.append(
+      BidPlacedEvent(
+        bid_id=bid.id,
+        auction_id=self.id,
+        user_id=bid.user_id,
+        amount=bid.value.amount,
+        currency=str(bid.value.currency),
+        placed_at=bid.placed_at,
+        occurred_at=bid.placed_at
+      )
+    )
     
     if time_left <= timedelta(seconds=30):
       self.expires_at += timedelta(minutes=2)
 
-  def cancel(self):
+  def cancel(self, clock: Clock):
     if self.status not in (AuctionStatus.DRAFT, AuctionStatus.ACTIVE):
       raise AuctionInvalidStateTransitionError("Auction must be in draft or active to be cancelled")
     self.status = AuctionStatus.CANCELLED
+    self.events.append(
+      AuctionCancelledEvent(
+        auction_id=self.id,
+        cancelled_at=clock.now(),
+        occurred_at=clock.now()
+      )
+    )
 
   def close(self, clock: Clock):
     if self.status != AuctionStatus.ACTIVE:
@@ -94,17 +120,26 @@ class Auction:
     if self.expires_at > clock.now():
       raise AuctionNotExpiredError("Auction has not expired yet")
     if not self.bids:
-      self.cancel()
+      self.cancel(clock)
       return
     
     assert self.highest_bid is not None
     if self.highest_bid.value < self.reserve_price:
-      self.cancel()
+      self.cancel(clock)
       return
     
     self.winner_id = self.highest_bid.user_id
     self.status = AuctionStatus.CLOSED
     self.closed_at = clock.now()
+    self.events.append(
+      AuctionClosedEvent(
+        auction_id=self.id,
+        winner_id=self.winner_id,
+        closed_at=self.closed_at,
+        status=str(self.status),
+        occurred_at=clock.now()
+      )
+    )
 
   def start(self, clock: Clock, reserve_price: Money, product_id: str, expires_at: datetime, minimum_percentage: Decimal):
     if self.status != AuctionStatus.DRAFT:
@@ -132,6 +167,18 @@ class Auction:
     self.product_id = product_id
     self.started_at = clock.now()
     self.expires_at = expires_at
+    self.events.append(
+      AuctionStartedEvent(
+        auction_id=self.id,
+        seller_id=self.seller_id,
+        product_id=self.product_id,
+        reserve_price_amount=self.reserve_price.amount,
+        reserve_price_currency=str(self.reserve_price.currency),
+        started_at=self.started_at,
+        expires_at=self.expires_at,
+        occurred_at=clock.now()
+      )
+    )
 
   @classmethod
   def restore(cls, id: str, seller_id: str, status: AuctionStatus, reserve_price: Money | None, minimum_percentage: Decimal | None, product_id: str | None, winner_id: str | None, started_at: datetime | None, closed_at: datetime | None, expires_at: datetime | None, bids: list[Bid] = []):
@@ -148,5 +195,7 @@ class Auction:
     auction.closed_at = closed_at
     auction.expires_at = expires_at
     auction.bids = bids
+    auction.events = []
     
     return auction
+

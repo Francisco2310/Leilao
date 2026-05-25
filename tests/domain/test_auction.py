@@ -211,8 +211,9 @@ def test_close_auction_before_expiration():
 
 def test_cancel_auction_draft():
     id_generator = MockIdGenerator()
+    clock = MockClock(datetime.now())
     auction = Auction(id_generator, "seller-id")
-    auction.cancel()
+    auction.cancel(clock)
     assert auction.status == AuctionStatus.CANCELLED
 
 def test_cancel_auction_active():
@@ -221,7 +222,7 @@ def test_cancel_auction_active():
     now = clock.now()
     auction = Auction(id_generator, "seller-id")
     auction.start(clock, Money(100, Currency.BRL), "product-id", now + timedelta(days=1), Decimal('0.1'))
-    auction.cancel()
+    auction.cancel(clock)
     assert auction.status == AuctionStatus.CANCELLED
 
 def test_cancel_auction_closed():
@@ -235,14 +236,15 @@ def test_cancel_auction_closed():
     auction.close(clock)
 
     with pytest.raises(AuctionInvalidStateTransitionError):
-        auction.cancel()
+        auction.cancel(clock)
 
 def test_cancel_auction_cancelled():
     id_generator = MockIdGenerator()
+    clock = MockClock(datetime.now())
     auction = Auction(id_generator, "seller-id")
-    auction.cancel()
+    auction.cancel(clock)
     with pytest.raises(AuctionInvalidStateTransitionError):
-        auction.cancel()
+        auction.cancel(clock)
 
 
 

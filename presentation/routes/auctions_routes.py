@@ -56,8 +56,8 @@ def list_auctions(
 
 
 @router.post("/auctions/{auction_id}/cancel", status_code=200)
-def cancel_auction(auction_id: UUID7Str, request: CancelAuctionRequest, repo = Depends(get_auction_repository)):
-    use_case = CancelAuctionUseCase(repo)
+def cancel_auction(auction_id: UUID7Str, request: CancelAuctionRequest, repo = Depends(get_auction_repository), clock = Depends(get_clock)):
+    use_case = CancelAuctionUseCase(repo, clock)
     use_case.execute(auction_id, request.seller_id)
     return {"message": "Auction cancelled successfully"}
 

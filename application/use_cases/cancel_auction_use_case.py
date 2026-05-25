@@ -1,9 +1,11 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
 from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
+from domain.Ports.ports import Clock
 
 class CancelAuctionUseCase:
-    def __init__(self, repository: AuctionRepositoryInterface):
+    def __init__(self, repository: AuctionRepositoryInterface, clock: Clock):
         self._repository = repository
+        self._clock = clock
 
     def execute(self, auction_id: str, seller_id: str):
         auction = self._repository.find_by_id_for_update(auction_id)
@@ -11,5 +13,5 @@ class CancelAuctionUseCase:
             raise AuctionNotFoundError("Auction not found")
         if auction.seller_id != seller_id:
             raise UnauthorizedActionError("Only the seller can cancel the auction")
-        auction.cancel()
+        auction.cancel(self._clock)
         self._repository.save(auction)
