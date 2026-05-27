@@ -89,7 +89,7 @@ class Auction:
         auction_id=self.id,
         user_id=bid.user_id,
         amount=bid.value.amount,
-        currency=str(bid.value.currency),
+        currency=bid.value.currency.value,
         placed_at=bid.placed_at,
         occurred_at=bid.placed_at
       )
@@ -173,12 +173,13 @@ class Auction:
         seller_id=self.seller_id,
         product_id=self.product_id,
         reserve_price_amount=self.reserve_price.amount,
-        reserve_price_currency=str(self.reserve_price.currency),
+        reserve_price_currency=self.reserve_price.currency.value,
         started_at=self.started_at,
         expires_at=self.expires_at,
         occurred_at=clock.now()
       )
     )
+
 
   @classmethod
   def restore(cls, id: str, seller_id: str, status: AuctionStatus, reserve_price: Money | None, minimum_percentage: Decimal | None, product_id: str | None, winner_id: str | None, started_at: datetime | None, closed_at: datetime | None, expires_at: datetime | None, bids: list[Bid] = []):
