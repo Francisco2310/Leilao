@@ -27,5 +27,8 @@ jobs:
     - name: Dependency install
       run: poetry install
 
+    - name: Run Mypy
+      run: poetry run mypy . --strict
+
     - name: Run Pytest
       run: poetry run pytest tests/ -v
