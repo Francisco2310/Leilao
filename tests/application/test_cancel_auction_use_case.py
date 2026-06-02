@@ -2,10 +2,10 @@ from datetime import datetime
 import pytest
 from application.use_cases.cancel_auction_use_case import CancelAuctionUseCase
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
-from domain.Exceptions.domain_exceptions import AuctionInvalidStateTransitionError
+from domain.exceptions.domain_exceptions import AuctionInvalidStateTransitionError
 from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
-from domain.Entities.auction import Auction, AuctionStatus
-from domain.Ports.ports import Clock
+from domain.entities.auction import Auction, AuctionStatus
+from domain.ports.ports import Clock
 
 class MockClock(Clock):
     def __init__(self, current_time: datetime):

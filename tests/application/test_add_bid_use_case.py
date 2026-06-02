@@ -1,12 +1,12 @@
 import pytest
-from domain.Ports.ports import IdGenerator
-from domain.Ports.ports import Clock
+from domain.ports.ports import IdGenerator
+from domain.ports.ports import Clock
 from datetime import datetime, timedelta
 from application.use_cases.add_bid_use_case import AddBidUseCase
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
 from application.exceptions.application_exceptions import AuctionNotFoundError
-from domain.Entities.auction import Auction
-from domain.ValueObjects.money import Money
+from domain.entities.auction import Auction
+from domain.value_objects.money import Money
 from decimal import Decimal
 
 class MockClock(Clock):

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional
 from presentation.api.types import UUID7Str
 
-from domain.ValueObjects.money import Currency
+from domain.value_objects.money import Currency
 from decimal import Decimal
 
 class CreateAuctionRequest(BaseModel):

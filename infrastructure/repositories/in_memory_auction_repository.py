@@ -1,4 +1,4 @@
-from domain.Entities.auction import Auction
+from domain.entities.auction import Auction
 from application.ports.auction_repository import AuctionRepositoryInterface
 
 class InMemoryAuctionRepository(AuctionRepositoryInterface):

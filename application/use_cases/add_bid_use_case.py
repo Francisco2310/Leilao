@@ -1,9 +1,9 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
-from domain.Ports.ports import IdGenerator
-from domain.Entities.bid import Bid
-from domain.ValueObjects.money import Money, Currency
+from domain.ports.ports import IdGenerator
+from domain.entities.bid import Bid
+from domain.value_objects.money import Money, Currency
 from application.exceptions.application_exceptions import AuctionNotFoundError
-from domain.Ports.ports import Clock
+from domain.ports.ports import Clock
 from decimal import Decimal
 
 

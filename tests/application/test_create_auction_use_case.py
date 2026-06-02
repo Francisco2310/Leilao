@@ -1,8 +1,8 @@
 import pytest
 from application.use_cases.create_auction_use_case import CreateAuctionUseCase
-from domain.Ports.ports import IdGenerator
+from domain.ports.ports import IdGenerator
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
-from domain.Entities.auction import AuctionStatus
+from domain.entities.auction import AuctionStatus
 
 class MockIdGenerator(IdGenerator):
     def __init__(self, fix_id="mock-id"):

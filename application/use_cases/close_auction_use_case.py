@@ -1,6 +1,6 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
 from application.exceptions.application_exceptions import AuctionNotFoundError
-from domain.Ports.ports import Clock
+from domain.ports.ports import Clock
 
 class CloseAuctionUseCase:
     def __init__(self, repository: AuctionRepositoryInterface, clock: Clock):

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from domain.Entities.auction import Auction
+from domain.entities.auction import Auction
 
 class AuctionRepositoryInterface(ABC):
     @abstractmethod

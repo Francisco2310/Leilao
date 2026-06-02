@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from domain.Exceptions.domain_exceptions import DomainException
+from domain.exceptions.domain_exceptions import DomainException
 from application.exceptions.application_exceptions import AuctionNotFoundError, ApplicationException, UnauthorizedActionError
 
 

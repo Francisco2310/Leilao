@@ -1,6 +1,6 @@
 import pytest
-from domain.ValueObjects.money import Money, Currency
-from domain.Exceptions.domain_exceptions import NegativeAmountError, CurrencyMismatchError
+from domain.value_objects.money import Money, Currency
+from domain.exceptions.domain_exceptions import NegativeAmountError, CurrencyMismatchError
 
 def test_money_equality():
   money1 = Money(100, Currency.BRL)

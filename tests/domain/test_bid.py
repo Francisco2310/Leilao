@@ -1,7 +1,7 @@
 import pytest
-from domain.Entities.bid import Bid
-from domain.ValueObjects.money import Money, Currency
-from domain.Exceptions.domain_exceptions import BidTooLowError
+from domain.entities.bid import Bid
+from domain.value_objects.money import Money, Currency
+from domain.exceptions.domain_exceptions import BidTooLowError
 
 class FakeIdGenerator:
   def generate(self) -> str:

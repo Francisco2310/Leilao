@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from application.use_cases.close_auction_use_case import CloseAuctionUseCase
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
 from application.exceptions.application_exceptions import AuctionNotFoundError
-from domain.Entities.auction import Auction, AuctionStatus
-from domain.Ports.ports import Clock, IdGenerator
-from domain.ValueObjects.money import Money
+from domain.entities.auction import Auction, AuctionStatus
+from domain.ports.ports import Clock, IdGenerator
+from domain.value_objects.money import Money
 from decimal import Decimal
 
 class MockClock(Clock):

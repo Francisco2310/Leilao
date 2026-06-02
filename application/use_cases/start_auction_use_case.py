@@ -1,7 +1,7 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
 from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
-from domain.Ports.ports import Clock
-from domain.ValueObjects.money import Money, Currency
+from domain.ports.ports import Clock
+from domain.value_objects.money import Money, Currency
 from datetime import datetime
 from decimal import Decimal
 

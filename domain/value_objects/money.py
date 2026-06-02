@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
-from domain.Exceptions.domain_exceptions import NegativeAmountError, CurrencyMismatchError, InvalidCurrencyError
+from domain.exceptions.domain_exceptions import NegativeAmountError, CurrencyMismatchError, InvalidCurrencyError
 
 class Currency(Enum):
   BRL = "BRL"

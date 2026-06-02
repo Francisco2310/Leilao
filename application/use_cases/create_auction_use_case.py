@@ -1,6 +1,6 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
-from domain.Ports.ports import IdGenerator
-from domain.Entities.auction import Auction
+from domain.ports.ports import IdGenerator
+from domain.entities.auction import Auction
 
 class CreateAuctionUseCase:
     def __init__(self, repository: AuctionRepositoryInterface, id_generator: IdGenerator):

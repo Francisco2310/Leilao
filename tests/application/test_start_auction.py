@@ -1,11 +1,11 @@
 import pytest
-from domain.Ports.ports import Clock
+from domain.ports.ports import Clock
 from datetime import datetime, timedelta
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
 from application.use_cases.start_auction_use_case import StartAuctionUseCase
-from domain.Entities.auction import Auction, AuctionStatus
-from domain.ValueObjects.money import Money
-from domain.Ports.ports import IdGenerator
+from domain.entities.auction import Auction, AuctionStatus
+from domain.value_objects.money import Money
+from domain.ports.ports import IdGenerator
 from decimal import Decimal
 from application.exceptions.application_exceptions import AuctionNotFoundError, UnauthorizedActionError
 
