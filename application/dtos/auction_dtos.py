@@ -5,7 +5,7 @@ from decimal import Decimal
 class AuctionResponseDto:
     id: str
     seller_id: str
-    product_id: str
+    product_id: str | None
     current_price: Decimal | None
     status: str
     expires_at: str | None

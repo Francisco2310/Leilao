@@ -1,6 +1,6 @@
 from application.ports.auction_repository import AuctionRepositoryInterface
-from domain.Entities.auction import Auction
-from domain.ValueObjects.money import Currency
+from domain.entities.auction import Auction
+from domain.value_objects.money import Currency
 from infrastructure.models.auction_model import AuctionModel
 from infrastructure.models.bid_model import BidModel
 from infrastructure.models.outbox_event_model import OutboxEventModel
@@ -26,15 +26,19 @@ class AuctionRepository(AuctionRepositoryInterface):
             expires_at=auction.expires_at
         )
         
-        auction_model.bids = [
-            BidModel(
-                id=bid.id,
-                user_id=bid.user_id,
-                amount=bid.value.amount,
-                currency=bid.value.currency.value if bid.value.currency else None,
-                placed_at=bid.placed_at
-            ) for bid in auction.bids
-        ]
+        existing_bid_ids = {bid.id for bid in auction_model.bids}
+        new_bids = [bid for bid in auction.bids if bid.id not in existing_bid_ids]
+        
+        for bid in new_bids:
+            auction_model.bids.append(
+                BidModel(
+                    id=bid.id,
+                    user_id=bid.user_id,
+                    amount=bid.value.amount,
+                    currency=bid.value.currency.value if bid.value.currency else None,
+                    placed_at=bid.placed_at
+                )
+            )
         
         events = [
             OutboxEventModel(
@@ -50,9 +54,9 @@ class AuctionRepository(AuctionRepositoryInterface):
     def find_by_id_for_update(self, auction_id: str) -> Auction | None:
         
         from sqlalchemy.orm import joinedload
-        from domain.ValueObjects.money import Money
-        from domain.Entities.auction import AuctionStatus
-        from domain.Entities.bid import Bid
+        from domain.value_objects.money import Money
+        from domain.entities.auction import AuctionStatus
+        from domain.entities.bid import Bid
 
         auction_model = (
             self.session.query(AuctionModel)
@@ -95,9 +99,9 @@ class AuctionRepository(AuctionRepositoryInterface):
     def find_all(self, limit: int, cursor: str | None = None, seller_id: str | None = None, status: str | None = None) -> list[Auction]:
       
         from sqlalchemy.orm import joinedload
-        from domain.ValueObjects.money import Money
-        from domain.Entities.auction import AuctionStatus
-        from domain.Entities.bid import Bid
+        from domain.value_objects.money import Money
+        from domain.entities.auction import AuctionStatus
+        from domain.entities.bid import Bid
 
         query = self.session.query(AuctionModel).options(joinedload(AuctionModel.bids))
 

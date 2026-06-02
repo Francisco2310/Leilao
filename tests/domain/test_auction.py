@@ -1,17 +1,18 @@
 import pytest
 from datetime import datetime, timedelta
 from decimal import Decimal
-from domain.Entities.auction import Auction, AuctionStatus
-from domain.ValueObjects.money import Money, Currency
-from domain.Entities.bid import Bid
-from domain.Exceptions.domain_exceptions import AuctionNotActiveError, InvalidAuctionConfigurationError, SelfBidError, BidTooLowError, NegativeAmountError, AuctionExpiredError, AuctionInvalidStateTransitionError, AuctionNotExpiredError
-from domain.Ports.ports import IdGenerator, Clock
+from domain.entities.auction import Auction, AuctionStatus
+from domain.value_objects.money import Money, Currency
+from domain.entities.bid import Bid
+from domain.exceptions.domain_exceptions import AuctionNotActiveError, InvalidAuctionConfigurationError, SelfBidError, BidTooLowError, NegativeAmountError, AuctionExpiredError, AuctionInvalidStateTransitionError, AuctionNotExpiredError
+from domain.ports.ports import IdGenerator, Clock
 
 class MockIdGenerator(IdGenerator):
-    def __init__(self, fix_id="mock-id"):
-        self.fix_id = fix_id
+    def __init__(self):
+        self._counter = 0
     def generate(self) -> str:
-        return self.fix_id
+        self._counter += 1
+        return f"mock-id-{self._counter}"
 
 class MockClock(Clock):
     def __init__(self, current_time: datetime):

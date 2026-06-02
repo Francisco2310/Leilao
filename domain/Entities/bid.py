@@ -1,7 +1,7 @@
 from datetime import datetime
-from domain.ValueObjects.money import Money
-from domain.Ports.ports import IdGenerator
-from domain.Exceptions.domain_exceptions import BidTooLowError
+from domain.value_objects.money import Money
+from domain.ports.ports import IdGenerator
+from domain.exceptions.domain_exceptions import BidTooLowError
 
 class Bid:
   value: Money

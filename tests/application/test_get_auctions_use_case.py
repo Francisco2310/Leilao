@@ -1,9 +1,9 @@
 import pytest
 from application.use_cases.get_auctions_use_case import GetAuctionsUseCase
 from infrastructure.repositories.in_memory_auction_repository import InMemoryAuctionRepository
-from domain.Ports.ports import IdGenerator, Clock
-from domain.Entities.auction import Auction
-from domain.ValueObjects.money import Money
+from domain.ports.ports import IdGenerator, Clock
+from domain.entities.auction import Auction
+from domain.value_objects.money import Money
 from decimal import Decimal
 from datetime import datetime, timedelta
 
@@ -71,7 +71,8 @@ class TestGetAuctionsUseCase:
         assert len(result) == 0
 
     def test_get_auctions_invalid_limit(self):
-        with pytest.raises(ValueError):
+        from application.exceptions.application_exceptions import ApplicationException
+        with pytest.raises(ApplicationException):
             self.use_case.execute(limit=0)
 
     def test_get_seller_auctions_success(self):
